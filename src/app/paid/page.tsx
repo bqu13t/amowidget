@@ -136,14 +136,14 @@ export default function PaidPage() {
   return (
     <div className="container mx-auto p-4">
       {/* Заголовок со словом "оплачено" и текущими фильтрами */}
-      <h1 className="text-2xl font-bold mb-4">
+      <h1 className="text-base font-bold mb-4">
         Оплачено за {selectedMonth !== null ? monthNames[selectedMonth] : "все месяцы"} {selectedYear ?? "все года"}
       </h1>
 
       {/* фильтры по месяцу и году */}
       <div className="flex gap-4 mb-6">
         <div>
-          <label className="block mb-1 text-sm text-gray-600">Месяц:</label>
+          <label className="block mb-1 text-xs text-gray-600">Месяц:</label>
           <select
             className="main-filter p-2"
             value={selectedMonth ?? ""}
@@ -156,7 +156,7 @@ export default function PaidPage() {
           </select>
         </div>
         <div>
-          <label className="block mb-1 text-sm text-gray-600">Год:</label>
+          <label className="block mb-1 text-xs text-gray-600">Год:</label>
           <select
             className="main-filter p-2"
             value={selectedYear ?? ""}
@@ -182,11 +182,11 @@ export default function PaidPage() {
         </thead>
         <tbody>
           {managerStats.map((stat) => (
-            <tr key={stat.name}>
-              <td className="px-4 py-2">{stat.name}</td>
+            <tr key={stat.name} className="text-xs">
+              <td className="px-4 py-2 text-xs">{stat.name}</td>
               <td className="px-4 py-2 text-right">{stat.paid}</td>
               <td className="px-4 py-2 text-right">{stat.total}</td>
-              <td className="px-4 py-2 text-right">
+              <td className="px-4 py-2 text-right font-bold">
                 {/* считаем конверсию, если есть хотя бы одна сделка. если сделок нет, конверсия 0% */}
                 {stat.total > 0 ? ((stat.paid / stat.total) * 100).toFixed(0) + "%" : "0%"}
               </td>

@@ -108,7 +108,7 @@ body {
 .summary-header,
 .summary-footer {
   /* box-shadow: var(--box-shadow); */
-  background: rgb(var(--bg-section-rgb));
+  /* background: rgb(var(--bg-section-rgb)); */
 }
 
 .table-header {
@@ -121,6 +121,7 @@ body {
 
 .summary-header th,
 .summary-footer td {
+  background: rgb(var(--bg-section-rgb));
   box-shadow: var(--box-shadow);
 }
 

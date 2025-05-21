@@ -186,7 +186,7 @@ export default function Home() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">
+      <h1 className="text-base font-bold mb-4">
         Статистика по специальностям:{" "}
         {selectedMonth !== null ? monthNames[selectedMonth] : "все месяцы"}{" "}
         {selectedYear !== null ? selectedYear : "все года"}
@@ -196,7 +196,7 @@ export default function Home() {
       <div className="flex flex-wrap gap-4 mb-6">
         {/* Месяц */}
         <div>
-          <label className="block mb-1 text-sm text-gray-600">Месяц:</label>
+          <label className="block mb-1 text-xs text-gray-600">Месяц:</label>
           <select
             className="main-filter p-2"
             value={selectedMonth ?? ""}
@@ -225,7 +225,7 @@ export default function Home() {
 
         {/* Год */}
         <div>
-          <label className="block mb-1 text-sm text-gray-600">Год:</label>
+          <label className="block mb-1 text-xs text-gray-600">Год:</label>
           <select
             className="main-filter p-2"
             value={selectedYear ?? ""}
@@ -254,7 +254,7 @@ export default function Home() {
 
         {/* Менеджер */}
         <div>
-          <label className="block mb-1 text-sm text-gray-600">Менеджер:</label>
+          <label className="block mb-1 text-xs text-gray-600">Менеджер:</label>
           <select
             className="main-filter p-2"
             value={selectedUserId ?? ""}
@@ -302,7 +302,7 @@ export default function Home() {
                 for (const form in groupedData[specialty]) {
                   const counts = groupedData[specialty][form];
                   rows.push(
-                    <tr key={`${specialty}-${form}`}>
+                    <tr key={`${specialty}-${form}`} className="text-xs">
                       <td className="px-4 py-2">{firstRow ? specialty : ""}</td>
                       <td className="px-4 py-2">{form}</td>
                       <td className="px-4 py-2 text-right">{counts["11"]}</td>

@@ -1,7 +1,57 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
-  --background: #ffffff;
+  /* font */
+  --header-color-rgb: 17, 24, 39; /* gray-900 */
+  --header-font-size: 1.5rem;
+  --header-font-weight: 700;
+
+  --default-color-rgb: 17, 24, 39; /* gray-900 */
+  --default-font-size: 1rem;
+  --default-font-weight: 400;
+
+  --small-font-size: 0.8rem;
+  --light-color-rgb: 75, 85, 99; /* gray-500 */
+
+  --white-font-rgb: 255, 255, 255;
+  --font-bold: 700;
+
+  /* background colors */
+  --bg-start-rgb: 243, 244, 246; /* gray-100 */
+  --bg-end-rgb: 249, 250, 251; /* gray-50 */
+  --bg-section-rgb: 255, 255, 255; /* white */
+  --bg-button-start-rgb: 229, 231, 235; /* gray-300 */
+  --bg-button-end-rgb: 255, 255, 255; /* gray-100 */
+  --bg-button-light: linear-gradient(
+    315deg,
+    rgb(var(--bg-button-start-rgb)),
+    rgb(var(--bg-button-end-rgb))
+  );
+  --bg-button-color: linear-gradient(
+    315deg,
+    rgb(var(--luna-400-rgb)),
+    rgb(var(--luna-200-rgb)),
+    rgb(var(--luna-100-rgb)),
+    rgb(var(--gray-100))
+  );
+
+  /* other */
+  --box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 11px -3px;
+  --drop-shadow: drop-shadow(0 10px 8px rgb(0 0 0 / 0.1))
+    drop-shadow(0 4px 3px rgb(0 0 0 / 0.1));
+  --icon-drop-shadow: drop-shadow(-2px 0px 3px rgb(0 0 0 / 0.1));
+  --mobile-panel-box-shadow: -5px 0px 10px 0 rgb(0, 0, 0, 0.1);
+  --scrollbar-rgba: 209, 213, 219, 1;
+  --border-radius: 1rem;
+  --on-hover-opacity: 0.8;
+  --on-hover-brightness: 1;
+  --transition: all 0.25s ease-in-out;
+  --backdrop-filter: blur(1rem);
+
+  /* margin, padding */
+  --margin: 0.5rem;
+  --padding: 0.5rem;
+
   --foreground: #171717;
 }
 
@@ -14,13 +64,86 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    /* font */
+    --default-color-rgb: 243, 244, 246; /* gray-200 */
+    --light-color-rgb: 156, 163, 175; /* gray-400 */
+
+    /* background colors */
+    --bg-start-rgb: 17, 24, 39; /* gray-900 */
+    --bg-end-rgb: 3, 7, 18; /* gray-950 */
+    --bg-section-rgb: 31, 41, 55; /* gray-800 */
+    --bg-button-start-rgb: 75, 85, 99; /* gray-600 */
+    --bg-button-end-rgb: 31, 41, 55; /* gray-700 */
+
+    /* other */
+    --box-shadow: rgba(255, 255, 255, 0.2) 0px 0px 11px -3px;
+    --drop-shadow: drop-shadow(0 10px 8px rgb(255 255 255 / 0.04));
+    --icon-drop-shadow: drop-shadow(-2px 0px 3px rgb(255 255 255 / 0.1));
+    --mobile-panel-box-shadow: -5px 0px 10px 0 rgb(255, 255, 255, 0.1);
+    --scrollbar-rgba: 55, 65, 81, 1;
+    --on-hover-opacity: 1;
+    --on-hover-brightness: 1.2;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Helvetica, sans-serif;
+  color: rgb(var(--default-color-rgb));
+  background: rgb(var(--bg-end-rgb));
+}
+
+.main-filter {
+  background: rgb(var(--bg-section-rgb));
+  color: rgb(var(--default-color-rgb));
+  font-size: var(--default-font-size);
+  font-weight: var(--header-font-weight);
+  box-shadow: var(--box-shadow);
+  border-radius: var(--border-radius);
+}
+
+.summary-table {
+  min-width: 100%;
+}
+
+.summary-header,
+.summary-footer {
+  /* box-shadow: var(--box-shadow); */
+  background: rgb(var(--bg-section-rgb));
+}
+
+.table-header {
+  background: rgb(var(--bg-section-rgb));
+  color: rgb(var(--default-color-rgb));
+  font-size: var(--default-font-size);
+  font-weight: var(--header-font-weight);
+  box-shadow: var(--box-shadow);
+}
+
+.summary-header th,
+.summary-footer td {
+  box-shadow: var(--box-shadow);
+}
+
+.top-left-cell {
+  border-top-left-radius: var(--border-radius);
+  border-bottom-left-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.top-right-cell {
+  border-top-right-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.bottom-left-cell {
+  border-top-left-radius: var(--border-radius);
+  border-bottom-left-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+}
+
+.bottom-right-cell {
+  border-top-right-radius: var(--border-radius);
+  border-bottom-right-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
 }

@@ -1,103 +1,331 @@
-import Image from "next/image";
+'use client';
+import { useEffect, useState, useMemo } from "react";
+
+export interface CustomFieldValue {
+  field_id: number;
+  field_name: string;
+  field_code?: string;
+  field_type: string;
+  values: Array<{
+    value: string | number | boolean;
+    enum_id?: number;
+    enum_code?: string;
+  }>;
+}
+
+export interface Lead {
+  id: number;
+  name: string;
+  price?: number;
+  responsible_user_id: number;
+  custom_fields_values?: CustomFieldValue[];
+  created_at: number;
+  pipeline_id: number;
+}
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  leads?: Lead[]; // заявки
+}
+
+export interface Pipeline {
+  id: number;
+  name: string;
+}
+
+// Тип для того, как мы будем хранить сгруппированные данные
+type GroupedData = {
+  [specialty: string]: {
+    [form: string]: {
+      "9": number;
+      "11": number;
+      total: number;
+    };
+  };
+};
+
+// Функция достаёт значение поля по названию, если оно есть
+function getFieldValue(fields: CustomFieldValue[] | undefined, fieldName: string): string | undefined {
+  if (!fields) return undefined;
+
+  for (let i = 0; i < fields.length; i++) {
+    if (fields[i].field_name === fieldName) {
+      if (fields[i].values.length > 0) {
+        return fields[i].values[0].value?.toString();
+      }
+    }
+  }
+
+  return undefined;
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const now = new Date();
+  const monthNames = [
+    "январь", "февраль", "март", "апрель", "май", "июнь",
+    "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"
+  ];
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(now.getMonth());
+  const [selectedYear, setSelectedYear] = useState<number | null>(now.getFullYear());
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [groupedData, setGroupedData] = useState<GroupedData>({});
+  const [users, setUsers] = useState<User[]>([]);
+  const [pipelines, setPipelines] = useState<Pipeline[]>([]);
+
+  // Cписок лет в фильтре
+  const years = useMemo(() => {
+    const result = [];
+    for (let year = 2030; year >= 2024; year--) {
+      result.push(year);
+    }
+    return result;
+  }, []);
+
+  // Подгружаем данные при запуске из API amocrm
+  useEffect(() => {
+    async function fetchData() {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_URL}/api/amo`);
+      const json = await res.json();
+      setUsers(json.users);
+      setPipelines(json.pipelines);
+    }
+
+    fetchData();
+  }, []);
+
+  // Когда что-то меняется (месяц, год, менеджер) — пересчитываем таблицу
+  useEffect(() => {
+    const data: GroupedData = {};
+    const currentPipelineName = "СТУДЕНТЫ " + (selectedYear ?? now.getFullYear());
+
+    // Находим нужную воронку по имени
+    let currentPipelineId = null;
+    for (let i = 0; i < pipelines.length; i++) {
+      if (pipelines[i].name === currentPipelineName) {
+        currentPipelineId = pipelines[i].id;
+        break;
+      }
+    }
+
+    // Проходим по всем пользователям
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+      if (selectedUserId !== null && user.id !== selectedUserId) continue;
+
+      if (!user.leads) continue;
+
+      // Проходим по заявкам менеджера
+      for (let j = 0; j < user.leads.length; j++) {
+        const lead = user.leads![j] as Lead;
+        const createdDate = new Date(lead.created_at * 1000); // переводим из UNIX
+
+        // Проверка месяца и года
+        const matchesMonth = selectedMonth === null || createdDate.getMonth() === selectedMonth;
+        const matchesYear = selectedYear === null || createdDate.getFullYear() === selectedYear;
+        if (!matchesMonth || !matchesYear) continue;
+
+        // Проверка, что заявка из нужного pipeline
+        if (!currentPipelineId || lead.pipeline_id !== currentPipelineId) continue;
+
+        // Достаём значения полей
+        const fields = lead.custom_fields_values as CustomFieldValue[] | undefined;
+        const specialty = getFieldValue(fields, "Специальность") || "Не указано";
+        const form = getFieldValue(fields, "Форма") || "Не указано";
+        let base = getFieldValue(fields, "База");
+
+        if (base) {
+          base = base.trim().replace(" класс", ""); // убираем лишнее
+        }
+
+        if (base !== "9" && base !== "11") continue;
+
+        // Если такой специальности ещё нет — создаём
+        if (!data[specialty]) {
+          data[specialty] = {};
+        }
+
+        // Если такой формы обучения ещё нет — создаём
+        if (!data[specialty][form]) {
+          data[specialty][form] = { "9": 0, "11": 0, total: 0 };
+        }
+
+        // Считаем
+        data[specialty][form][base] += 1;
+        data[specialty][form].total += 1;
+      }
+    }
+
+    // Сохраняем результат
+    setGroupedData(data);
+  }, [users, pipelines, selectedMonth, selectedYear, selectedUserId]);
+
+  // Считает всего сколько заявок по базе 9 или 11
+  function calculateTotalByBase(base: "9" | "11") {
+    let total = 0;
+    for (const specialty in groupedData) {
+      for (const form in groupedData[specialty]) {
+        total += groupedData[specialty][form][base];
+      }
+    }
+    return total;
+  }
+
+  // Считает всего всех заявок
+  function calculateTotalOverall() {
+    let total = 0;
+    for (const specialty in groupedData) {
+      for (const form in groupedData[specialty]) {
+        total += groupedData[specialty][form].total;
+      }
+    }
+    return total;
+  }
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">
+        Статистика по специальностям:{" "}
+        {selectedMonth !== null ? monthNames[selectedMonth] : "все месяцы"}{" "}
+        {selectedYear !== null ? selectedYear : "все года"}
+      </h1>
+
+      {/* Фильтры сверху */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        {/* Месяц */}
+        <div>
+          <label className="block mb-1 text-sm text-gray-600">Месяц:</label>
+          <select
+            className="main-filter p-2"
+            value={selectedMonth ?? ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "") setSelectedMonth(null);
+              else setSelectedMonth(parseInt(val));
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            <option value="">Все месяцы</option>
+            {
+              (() => {
+                const options = [];
+                for (let i = 0; i < monthNames.length; i++) {
+                  options.push(
+                    <option key={i} value={i}>
+                      {monthNames[i].charAt(0).toUpperCase() + monthNames[i].slice(1)}
+                    </option>
+                  );
+                }
+                return options;
+              })()
+            }
+          </select>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* Год */}
+        <div>
+          <label className="block mb-1 text-sm text-gray-600">Год:</label>
+          <select
+            className="main-filter p-2"
+            value={selectedYear ?? ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "") setSelectedYear(null);
+              else setSelectedYear(parseInt(val));
+            }}
+          >
+            <option value="">Все года</option>
+            {
+              (() => {
+                const options = [];
+                for (let i = 0; i < years.length; i++) {
+                  options.push(
+                    <option key={years[i]} value={years[i]}>
+                      {years[i]}
+                    </option>
+                  );
+                }
+                return options;
+              })()
+            }
+          </select>
+        </div>
+
+        {/* Менеджер */}
+        <div>
+          <label className="block mb-1 text-sm text-gray-600">Менеджер:</label>
+          <select
+            className="main-filter p-2"
+            value={selectedUserId ?? ""}
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val === "") setSelectedUserId(null);
+              else setSelectedUserId(parseInt(val));
+            }}
+          >
+            <option value="">Все менеджеры</option>
+            {
+              (() => {
+                const options = [];
+                for (let i = 0; i < users.length; i++) {
+                  options.push(
+                    <option key={users[i].id} value={users[i].id}>
+                      {users[i].name}
+                    </option>
+                  );
+                }
+                return options;
+              })()
+            }
+          </select>
+        </div>
+      </div>
+
+      {/* Таблица с итогами */}
+      <table className="summary-table">
+        <thead className="summary-header">
+          <tr>
+            <th className="px-4 py-2 text-left top-left-cell">Специальность</th>
+            <th className="px-4 py-2 text-left">Форма обучения</th>
+            <th className="px-4 py-2 text-right">11 класс</th>
+            <th className="px-4 py-2 text-right">9 класс</th>
+            <th className="px-4 py-2 text-right top-right-cell">Итого</th>
+          </tr>
+        </thead>
+        <tbody>
+          {
+            (() => {
+              const rows = [];
+              for (const specialty in groupedData) {
+                let firstRow = true;
+                for (const form in groupedData[specialty]) {
+                  const counts = groupedData[specialty][form];
+                  rows.push(
+                    <tr key={`${specialty}-${form}`}>
+                      <td className="px-4 py-2">{firstRow ? specialty : ""}</td>
+                      <td className="px-4 py-2">{form}</td>
+                      <td className="px-4 py-2 text-right">{counts["11"]}</td>
+                      <td className="px-4 py-2 text-right">{counts["9"]}</td>
+                      <td className="px-4 py-2 font-bold text-right">{counts.total}</td>
+                    </tr>
+                  );
+                  firstRow = false;
+                }
+              }
+              return rows;
+            })()
+          }
+
+          {/* Последняя строка — общий итог */}
+          <tr className="summary-row summary-footer">
+            <td className="px-4 py-2 font-bold bottom-left-cell" colSpan={2}>Итого по всем</td>
+            <td className="px-4 py-2 font-bold text-right">{calculateTotalByBase("11")}</td>
+            <td className="px-4 py-2 font-bold text-right">{calculateTotalByBase("9")}</td>
+            <td className="px-4 py-2 font-bold text-right bottom-right-cell">{calculateTotalOverall()}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   );
 }

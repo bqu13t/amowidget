@@ -99,7 +99,7 @@ export default function Home() {
   // Когда что-то меняется (месяц, год, менеджер) — пересчитываем таблицу
   useEffect(() => {
     const data: GroupedData = {};
-    const currentPipelineName = "СТУДЕНТЫ " + (selectedYear ?? now.getFullYear());
+    const currentPipelineName = "Студенты " + (selectedYear ?? now.getFullYear());
 
     // Находим нужную воронку по имени
     let currentPipelineId = null;

@@ -78,7 +78,7 @@ export default function Home() {
   // Cписок лет в фильтре
   const years = useMemo(() => {
     const result = [];
-    for (let year = 2030; year >= 2024; year--) {
+    for (let year = 2030; year >= 2023; year--) {
       result.push(year);
     }
     return result;

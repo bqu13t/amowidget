@@ -58,7 +58,7 @@ export default function PaidPage() {
   // Создаём массив лет от 2030 до 2024, чтобы показать в дропдауне
   const years = useMemo(() => {
     const yearsArray = [];
-    for (let i = 2030; i >= 2024; i--) {
+    for (let i = 2030; i >= 2023; i--) {
       yearsArray.push(i);
     }
     return yearsArray;
@@ -77,11 +77,11 @@ export default function PaidPage() {
     fetchData();
   }, []);
 
-  // Ищем нужную воронку по названию (ищем ту, где "Воронка")
+  // Ищем нужную воронку по названию (ищем ту, где "ВОРОНКА")
   const paidPipeline = useMemo(() => {
     let result = null;
     for (let i = 0; i < pipelines.length; i++) {
-      if (pipelines[i].name === "Воронка") {
+      if (pipelines[i].name === "ВОРОНКА") {
         result = pipelines[i];
         break;
       }
